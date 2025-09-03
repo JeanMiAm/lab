@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-storage
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch-volume
+  - image: busybox
+    name: busybox
+    command: ["/bin/sh", "-c"]    #add a command to run in the container busybox otherwise it doesn't do anything and would then complete and be in CrashLoopBackOff
+    args: ["sleep 1000"]    #this is the argument for the posix sh commannd
+    volumeMounts:
+    - mountPath: /scratch
+      name: scratch-volume
+  volumes:
+  - name: scratch-volume
+    emptyDir:
+      sizeLimit: 500Mi

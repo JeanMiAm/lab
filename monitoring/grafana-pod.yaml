@@ -1,0 +1,361 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    checksum/config: 0e9cbd0ea8e24e32f7dfca5bab17a2ba05652642f0a09a4882833ae88e4cc4a3
+    checksum/sc-dashboard-provider-config: e70bf6a851099d385178a76de9757bb0bef8299da6d8443602590e44f05fdf24
+    checksum/secret: 032056e9c62bbe9d1daa41ee49cd3d9524c076f51ca4c65adadf4ef08ef28712
+    kubectl.kubernetes.io/default-container: grafana
+  creationTimestamp: "2025-09-02T20:57:08Z"
+  generateName: prometheus-stack-grafana-779d99c59c-
+  generation: 1
+  labels:
+    app.kubernetes.io/instance: prometheus-stack
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/version: 12.1.1
+    helm.sh/chart: grafana-9.4.4
+    pod-template-hash: 779d99c59c
+  name: prometheus-stack-grafana-779d99c59c-5l2hv
+  namespace: monitoring
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: prometheus-stack-grafana-779d99c59c
+    uid: 8436ccf6-8a15-4cec-bb92-08224c9e3b7b
+  resourceVersion: "62578"
+  uid: 3b16ce96-3ba8-4477-8c91-569b31026986
+spec:
+  automountServiceAccountToken: true
+  containers:
+  - env:
+    - name: METHOD
+      value: WATCH
+    - name: LABEL
+      value: grafana_dashboard
+    - name: LABEL_VALUE
+      value: "1"
+    - name: FOLDER
+      value: /tmp/dashboards
+    - name: RESOURCE
+      value: both
+    - name: NAMESPACE
+      value: ALL
+    - name: REQ_USERNAME
+      valueFrom:
+        secretKeyRef:
+          key: admin-user
+          name: prometheus-stack-grafana
+    - name: REQ_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: admin-password
+          name: prometheus-stack-grafana
+    - name: REQ_URL
+      value: http://localhost:3000/api/admin/provisioning/dashboards/reload
+    - name: REQ_METHOD
+      value: POST
+    image: quay.io/kiwigrid/k8s-sidecar:1.30.10
+    imagePullPolicy: IfNotPresent
+    name: grafana-sc-dashboard
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /tmp/dashboards
+      name: sc-dashboard-volume
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-rk48v
+      readOnly: true
+  - env:
+    - name: METHOD
+      value: WATCH
+    - name: LABEL
+      value: grafana_datasource
+    - name: LABEL_VALUE
+      value: "1"
+    - name: FOLDER
+      value: /etc/grafana/provisioning/datasources
+    - name: RESOURCE
+      value: both
+    - name: REQ_USERNAME
+      valueFrom:
+        secretKeyRef:
+          key: admin-user
+          name: prometheus-stack-grafana
+    - name: REQ_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: admin-password
+          name: prometheus-stack-grafana
+    - name: REQ_URL
+      value: http://localhost:3000/api/admin/provisioning/datasources/reload
+    - name: REQ_METHOD
+      value: POST
+    image: quay.io/kiwigrid/k8s-sidecar:1.30.10
+    imagePullPolicy: IfNotPresent
+    name: grafana-sc-datasources
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /etc/grafana/provisioning/datasources
+      name: sc-datasources-volume
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-rk48v
+      readOnly: true
+  - env:
+    - name: POD_IP
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: status.podIP
+    - name: GF_SECURITY_ADMIN_USER
+      valueFrom:
+        secretKeyRef:
+          key: admin-user
+          name: prometheus-stack-grafana
+    - name: GF_SECURITY_ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: admin-password
+          name: prometheus-stack-grafana
+    - name: GF_PATHS_DATA
+      value: /var/lib/grafana/
+    - name: GF_PATHS_LOGS
+      value: /var/log/grafana
+    - name: GF_PATHS_PLUGINS
+      value: /var/lib/grafana/plugins
+    - name: GF_PATHS_PROVISIONING
+      value: /etc/grafana/provisioning
+    image: docker.io/grafana/grafana:12.1.1
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 10
+      httpGet:
+        path: /api/health
+        port: 3000
+        scheme: HTTP
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 30
+    name: grafana
+    ports:
+    - containerPort: 3000
+      name: grafana
+      protocol: TCP
+    - containerPort: 9094
+      name: gossip-tcp
+      protocol: TCP
+    - containerPort: 9094
+      name: gossip-udp
+      protocol: UDP
+    - containerPort: 6060
+      name: profiling
+      protocol: TCP
+    readinessProbe:
+      failureThreshold: 3
+      httpGet:
+        path: /api/health
+        port: 3000
+        scheme: HTTP
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /etc/grafana/grafana.ini
+      name: config
+      subPath: grafana.ini
+    - mountPath: /var/lib/grafana
+      name: storage
+    - mountPath: /tmp/dashboards
+      name: sc-dashboard-volume
+    - mountPath: /etc/grafana/provisioning/dashboards/sc-dashboardproviders.yaml
+      name: sc-dashboard-provider
+      subPath: provider.yaml
+    - mountPath: /etc/grafana/provisioning/datasources
+      name: sc-datasources-volume
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-rk48v
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: aad-5bzymn3
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext:
+    fsGroup: 472
+    runAsGroup: 472
+    runAsNonRoot: true
+    runAsUser: 472
+  serviceAccount: prometheus-stack-grafana
+  serviceAccountName: prometheus-stack-grafana
+  shareProcessNamespace: false
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - configMap:
+      defaultMode: 420
+      name: prometheus-stack-grafana
+    name: config
+  - emptyDir: {}
+    name: storage
+  - emptyDir: {}
+    name: sc-dashboard-volume
+  - configMap:
+      defaultMode: 420
+      name: prometheus-stack-grafana-config-dashboards
+    name: sc-dashboard-provider
+  - emptyDir: {}
+    name: sc-datasources-volume
+  - name: kube-api-access-rk48v
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2025-09-02T20:57:44Z"
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2025-09-02T20:57:08Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2025-09-02T20:57:56Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2025-09-02T20:57:56Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2025-09-02T20:57:08Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: docker://4331086ef22b2a14b4ebb5ffec402bba91d8a3180c210bf1e776fd4d5d1ea15e
+    image: grafana/grafana:12.1.1
+    imageID: docker-pullable://grafana/grafana@sha256:a1701c2180249361737a99a01bc770db39381640e4d631825d38ff4535efa47d
+    lastState: {}
+    name: grafana
+    ready: true
+    resources: {}
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2025-09-02T20:57:44Z"
+    volumeMounts:
+    - mountPath: /etc/grafana/grafana.ini
+      name: config
+    - mountPath: /var/lib/grafana
+      name: storage
+    - mountPath: /tmp/dashboards
+      name: sc-dashboard-volume
+    - mountPath: /etc/grafana/provisioning/dashboards/sc-dashboardproviders.yaml
+      name: sc-dashboard-provider
+    - mountPath: /etc/grafana/provisioning/datasources
+      name: sc-datasources-volume
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-rk48v
+      readOnly: true
+      recursiveReadOnly: Disabled
+  - containerID: docker://861bcba06b8f1e98de03fa952c2c1db46ffa89a33a5ae6b276bcf02850a3a3d6
+    image: quay.io/kiwigrid/k8s-sidecar:1.30.10
+    imageID: docker-pullable://quay.io/kiwigrid/k8s-sidecar@sha256:835d79d8fbae62e42d8a86929d4e3c5eec2e869255dd37756b5a3166c2f22309
+    lastState: {}
+    name: grafana-sc-dashboard
+    ready: true
+    resources: {}
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2025-09-02T20:57:16Z"
+    volumeMounts:
+    - mountPath: /tmp/dashboards
+      name: sc-dashboard-volume
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-rk48v
+      readOnly: true
+      recursiveReadOnly: Disabled
+  - containerID: docker://8069893b826d567c4c8ffcf0d14998b5ccdcf4e581f6b415e3afdeebf2ffacbd
+    image: quay.io/kiwigrid/k8s-sidecar:1.30.10
+    imageID: docker-pullable://quay.io/kiwigrid/k8s-sidecar@sha256:835d79d8fbae62e42d8a86929d4e3c5eec2e869255dd37756b5a3166c2f22309
+    lastState: {}
+    name: grafana-sc-datasources
+    ready: true
+    resources: {}
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2025-09-02T20:57:17Z"
+    volumeMounts:
+    - mountPath: /etc/grafana/provisioning/datasources
+      name: sc-datasources-volume
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-rk48v
+      readOnly: true
+      recursiveReadOnly: Disabled
+  hostIP: 192.168.127.2
+  hostIPs:
+  - ip: 192.168.127.2
+  phase: Running
+  podIP: 10.42.0.83
+  podIPs:
+  - ip: 10.42.0.83
+  qosClass: BestEffort
+  startTime: "2025-09-02T20:57:08Z"
